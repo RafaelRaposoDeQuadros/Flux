@@ -1,5 +1,6 @@
 package com.flux.backend.empresa.entity;
 
+import com.flux.backend.empresa.enums.EmpresaStatus;
 import jakarta.persistence.*;
 
 import java.io.Serializable;
@@ -15,18 +16,18 @@ public class Empresa implements Serializable {
     private Long id;
     private String name;
     private String email;
-    private boolean active;
+    private Integer status;
     private Instant createdAt;
 
     public Empresa(){
 
     }
 
-    public Empresa(Long id, String name, String email, boolean active, Instant createdAt) {
+    public Empresa(Long id, String name, String email, EmpresaStatus status, Instant createdAt) {
         this.id = id;
         this.name = name;
         this.email = email;
-        this.active = active;
+       setStatus(status);
         this.createdAt = createdAt;
     }
 
@@ -54,12 +55,17 @@ public class Empresa implements Serializable {
         this.email = email;
     }
 
-    public boolean isActive() {
-        return active;
+    public EmpresaStatus getStatus() {
+        if(status == null){
+            return null;
+        }
+        return EmpresaStatus.valueOf(status);
     }
 
-    public void setActive(boolean active) {
-        this.active = active;
+    public void setStatus(EmpresaStatus status) {
+        if(status != null) {
+            this.status = status.getCode();
+        }
     }
 
     public Instant getCreatedAt() {
