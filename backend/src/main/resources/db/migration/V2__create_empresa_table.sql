@@ -1,0 +1,7 @@
+CREATE TABLE tb_empresa (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(254) NOT NULL UNIQUE,
+    status INTEGER NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL
+);
