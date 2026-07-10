@@ -84,7 +84,7 @@ public class GlobalExceptionHandler {
             .status(status)
             .body(error);
     }
-    
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleUnexpectedException(
         Exception exception,
