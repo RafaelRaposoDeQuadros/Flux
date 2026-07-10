@@ -5,7 +5,6 @@ import com.flux.backend.empresa.dto.CreateEmpresaRequest;
 import com.flux.backend.empresa.dto.EmpresaResponse;
 import com.flux.backend.empresa.service.EmpresaService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,8 +16,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/empresas")
 public class EmpresaController {
 
-    @Autowired
-    private EmpresaService service;
+
+    private final EmpresaService service;
+
+    public EmpresaController(EmpresaService service){
+        this.service = service;
+    }
 
     @PostMapping
     public ResponseEntity<EmpresaResponse>create(@Valid @RequestBody CreateEmpresaRequest request){
