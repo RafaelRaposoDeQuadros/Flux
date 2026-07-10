@@ -1,0 +1,87 @@
+package com.flux.backend.empresa.service;
+
+import com.flux.backend.empresa.dto.CreateEmpresaRequest;
+import com.flux.backend.empresa.dto.EmpresaResponse;
+import com.flux.backend.empresa.entity.Empresa;
+import com.flux.backend.empresa.enums.EmpresaStatus;
+import com.flux.backend.shared.exception.BusinessException;
+import org.junit.jupiter.api.Test;
+
+import java.time.Instant;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+import com.flux.backend.empresa.repository.EmpresaRepository;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+@ExtendWith(MockitoExtension.class)
+class EmpresaServiceTest {
+
+    @Mock
+    private EmpresaRepository repository;
+
+    @InjectMocks
+    private EmpresaService service;
+
+    @Test
+    void shouldCreateEmpresaWhenEmailDoesNotExist() {
+
+        CreateEmpresaRequest request = new CreateEmpresaRequest();
+        request.setName("Barbearia Alpha");
+        request.setEmail("contato@alpha.com");
+
+        Empresa savedEmpresa = new Empresa(
+            1L,
+            "Barbearia Alpha",
+            "contato@alpha.com",
+            EmpresaStatus.ACTIVE,
+            Instant.now()
+        );
+
+        when(repository.existsByEmail(request.getEmail()))
+            .thenReturn(false);
+
+        when(repository.save(any(Empresa.class)))
+            .thenReturn(savedEmpresa);
+
+        EmpresaResponse response = service.create(request);
+
+        assertNotNull(response);
+        assertEquals(1L, response.getId());
+        assertEquals("Barbearia Alpha", response.getName());
+        assertEquals("contato@alpha.com", response.getEmail());
+        assertEquals(EmpresaStatus.ACTIVE, response.getStatus());
+
+        verify(repository).existsByEmail(request.getEmail());
+        verify(repository).save(any(Empresa.class));
+    }
+
+    @Test
+    void shouldThrowBusinessExceptionWhenEmailAlreadyExists() {
+
+        CreateEmpresaRequest request = new CreateEmpresaRequest();
+        request.setName("Barbearia Alpha");
+        request.setEmail("contato@alpha.com");
+
+        when(repository.existsByEmail(request.getEmail()))
+            .thenReturn(true);
+
+        BusinessException exception = assertThrows(
+            BusinessException.class,
+            () -> service.create(request)
+        );
+
+        assertEquals(
+            "Já existe uma empresa cadastrada com este e-mail.",
+            exception.getMessage()
+        );
+
+        verify(repository).existsByEmail(request.getEmail());
+        verify(repository, never()).save(any(Empresa.class));
+    }
+}
