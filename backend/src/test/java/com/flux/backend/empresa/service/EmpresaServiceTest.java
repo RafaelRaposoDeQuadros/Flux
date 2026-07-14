@@ -9,6 +9,7 @@ import com.flux.backend.shared.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -131,5 +132,57 @@ class EmpresaServiceTest {
         );
 
         verify(repository).findById(id);
+    }
+
+    @Test
+    void shouldReturnListOfEmpresasWhenCompaniesExist(){
+
+        Instant createdAt = Instant.now();
+
+        Empresa empresa1 = new Empresa(
+            1L,
+            "Empresa A",
+            "empresa.a@email.com",
+            EmpresaStatus.ACTIVE,
+            createdAt
+        );
+
+        Empresa empresa2 = new Empresa(
+            2L,
+            "Empresa B",
+            "empresa.b@email.com",
+            EmpresaStatus.INACTIVE,
+            createdAt
+        );
+
+        when(repository.findAll())
+            .thenReturn(List.of(empresa1,empresa2));
+
+        List<EmpresaResponse> response = service.findAll();
+
+        assertEquals(1L, response.get(0).getId());
+        assertEquals("Empresa A", response.get(0).getName());
+        assertEquals("empresa.a@email.com", response.get(0).getEmail());
+        assertEquals(EmpresaStatus.ACTIVE, response.get(0).getStatus());
+
+        assertEquals(2L, response.get(1).getId());
+        assertEquals("Empresa B", response.get(1).getName());
+        assertEquals("empresa.b@email.com", response.get(1).getEmail());
+        assertEquals(EmpresaStatus.INACTIVE, response.get(1).getStatus());
+
+        verify(repository).findAll();
+    }
+
+    @Test
+    void shouldReturnEmptyListWhenNoEmpresasExist() {
+        when(repository.findAll())
+            .thenReturn(List.of());
+
+        List<EmpresaResponse> response = service.findAll();
+
+        assertNotNull(response);
+        assertTrue(response.isEmpty());
+
+        verify(repository).findAll();
     }
 }
