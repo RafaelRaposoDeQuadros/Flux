@@ -5,9 +5,11 @@ import com.flux.backend.empresa.dto.EmpresaResponse;
 import com.flux.backend.empresa.entity.Empresa;
 import com.flux.backend.empresa.enums.EmpresaStatus;
 import com.flux.backend.shared.exception.BusinessException;
+import com.flux.backend.shared.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -83,5 +85,51 @@ class EmpresaServiceTest {
 
         verify(repository).existsByEmail(request.getEmail());
         verify(repository, never()).save(any(Empresa.class));
+    }
+
+    @Test
+    void shouldReturnEmpresaWhenIdExists(){
+        Long id = 1L;
+        Instant createdAt = Instant.now();
+
+        Empresa empresa = new Empresa(id
+        ,"Flux"
+        ,"flux@gmail.com"
+        ,EmpresaStatus.ACTIVE
+        ,createdAt);
+
+        when(repository.findById(id))
+            .thenReturn(Optional.of(empresa));
+
+        EmpresaResponse response = service.findById(id);
+
+        assertNotNull(response);
+        assertEquals(id, response.getId());
+        assertEquals("Flux", response.getName());
+        assertEquals("flux@gmail.com", response.getEmail());
+        assertEquals(EmpresaStatus.ACTIVE, response.getStatus());
+        assertEquals(createdAt, response.getCreatedAt());
+
+        verify(repository).findById(id);
+
+    }
+    @Test
+    void shouldThrowResourceNotFoundExceptionWhenIdDoesNotExist() {
+        Long id = 999L;
+
+        when(repository.findById(id))
+            .thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(
+            ResourceNotFoundException.class,
+            () -> service.findById(id)
+        );
+
+        assertEquals(
+            "Recurso não encontrado. Id: " + id,
+            exception.getMessage()
+        );
+
+        verify(repository).findById(id);
     }
 }
