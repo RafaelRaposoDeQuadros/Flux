@@ -47,6 +47,11 @@ public class EmpresaController {
     {
         EmpresaResponse response = service.update(id,request);
         return ResponseEntity.ok(response);
+    }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deactivate(@PathVariable("id") Long id){
+        service.deactivate(id);
+        return ResponseEntity.noContent().build();
     }
 }
