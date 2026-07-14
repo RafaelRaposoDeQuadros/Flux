@@ -66,4 +66,13 @@ public class EmpresaService {
 
         return new EmpresaResponse(empresaAtualizada);
     }
+
+    public void deactivate(Long id){
+        Empresa empresa = repository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException(id));
+
+        empresa.setStatus(EmpresaStatus.INACTIVE);
+
+        repository.save(empresa);
+    }
 }

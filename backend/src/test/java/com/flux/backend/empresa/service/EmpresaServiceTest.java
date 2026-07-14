@@ -333,4 +333,66 @@ class EmpresaServiceTest {
 
         verify(repository).save(empresa);
     }
+
+    @Test
+    void shouldDeactivateEmpresaWhenIdExists() {
+        Long empresaId = 1L;
+
+        Empresa empresa = new Empresa(
+            empresaId,
+            "Flux Barbearia",
+            "contato@flux.com",
+            EmpresaStatus.ACTIVE,
+            Instant.now()
+        );
+
+        when(repository.findById(empresaId))
+            .thenReturn(Optional.of(empresa));
+
+        service.deactivate(empresaId);
+
+        assertEquals(EmpresaStatus.INACTIVE, empresa.getStatus());
+
+        verify(repository).findById(empresaId);
+        verify(repository).save(empresa);
+    }
+
+    @Test
+    void shouldThrowResourceNotFoundExceptionWhenDeactivatingNonexistentEmpresa() {
+        Long empresaId = 999L;
+
+        when(repository.findById(empresaId))
+            .thenReturn(Optional.empty());
+
+        assertThrows(
+            ResourceNotFoundException.class,
+            () -> service.deactivate(empresaId)
+        );
+
+        verify(repository).findById(empresaId);
+        verify(repository, never()).save(any(Empresa.class));
+    }
+
+    @Test
+    void shouldKeepEmpresaInactiveWhenAlreadyInactive() {
+        Long empresaId = 1L;
+
+        Empresa empresa = new Empresa(
+            empresaId,
+            "Flux Barbearia",
+            "contato@flux.com",
+            EmpresaStatus.INACTIVE,
+            Instant.now()
+        );
+
+        when(repository.findById(empresaId))
+            .thenReturn(Optional.of(empresa));
+
+        service.deactivate(empresaId);
+
+        assertEquals(EmpresaStatus.INACTIVE, empresa.getStatus());
+
+        verify(repository).findById(empresaId);
+        verify(repository).save(empresa);
+    }
 }
