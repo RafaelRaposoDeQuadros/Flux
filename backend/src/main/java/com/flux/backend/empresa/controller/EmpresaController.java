@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/empresas")
 public class EmpresaController {
@@ -30,5 +32,11 @@ public class EmpresaController {
     public ResponseEntity<EmpresaResponse>findById(@PathVariable("id") Long id){
         EmpresaResponse response = service.findById(id);
         return ResponseEntity.ok().body(response);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<EmpresaResponse>>findAll(){
+        List<EmpresaResponse> response=service.findAll();
+        return ResponseEntity.ok(response);
     }
 }

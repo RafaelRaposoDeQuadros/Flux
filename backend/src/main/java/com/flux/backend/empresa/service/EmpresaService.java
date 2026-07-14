@@ -11,6 +11,7 @@ import com.flux.backend.shared.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 
@@ -37,5 +38,13 @@ public class EmpresaService {
     public EmpresaResponse findById(Long id){
        Optional<Empresa> obj = repository.findById(id);
        return new EmpresaResponse(obj.orElseThrow(()->new ResourceNotFoundException(id)));
+    }
+
+    public List<EmpresaResponse> findAll(){
+        List<Empresa> empresas =repository.findAll();
+
+        return empresas.stream()
+            .map(EmpresaResponse::new)
+            .toList();
     }
 }
