@@ -3,6 +3,7 @@ package com.flux.backend.empresa.controller;
 
 import com.flux.backend.empresa.dto.CreateEmpresaRequest;
 import com.flux.backend.empresa.dto.EmpresaResponse;
+import com.flux.backend.empresa.dto.UpdateEmpresaRequest;
 import com.flux.backend.empresa.service.EmpresaService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -38,5 +39,14 @@ public class EmpresaController {
     public ResponseEntity<List<EmpresaResponse>>findAll(){
         List<EmpresaResponse> response=service.findAll();
         return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<EmpresaResponse>update(@PathVariable("id") Long id,
+                                                 @Valid@RequestBody UpdateEmpresaRequest request)
+    {
+        EmpresaResponse response = service.update(id,request);
+        return ResponseEntity.ok(response);
+
     }
 }
