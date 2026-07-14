@@ -2,6 +2,7 @@ package com.flux.backend.empresa.service;
 
 import com.flux.backend.empresa.dto.CreateEmpresaRequest;
 import com.flux.backend.empresa.dto.EmpresaResponse;
+import com.flux.backend.empresa.dto.UpdateEmpresaRequest;
 import com.flux.backend.empresa.entity.Empresa;
 import com.flux.backend.empresa.enums.EmpresaStatus;
 import com.flux.backend.shared.exception.BusinessException;
@@ -184,5 +185,152 @@ class EmpresaServiceTest {
         assertTrue(response.isEmpty());
 
         verify(repository).findAll();
+    }
+
+    @Test
+    void shouldUpdateEmpresaWhenDataIsValid(){
+        Long id = 1L;
+        Instant createdAt = Instant.now();
+
+        Empresa empresa = new Empresa(id
+            ,"Flux"
+            ,"flux@gmail.com"
+            ,EmpresaStatus.ACTIVE
+            ,createdAt);
+
+        UpdateEmpresaRequest request = new UpdateEmpresaRequest();
+        request.setEmail("flux.gestao@gmail.com");
+        request.setName("Flux");
+        when(repository.findById(id))
+            .thenReturn(Optional.of(empresa));
+
+        when(repository.existsByEmailAndIdNot(request.getEmail(), id))
+            .thenReturn(false);
+
+        when(repository.save(empresa))
+            .thenReturn(empresa);
+
+        EmpresaResponse response = service.update(id, request);
+
+        assertNotNull(response);
+        assertEquals(id, response.getId());
+        assertEquals("Flux", response.getName());
+        assertEquals("flux.gestao@gmail.com", response.getEmail());
+        assertEquals(EmpresaStatus.ACTIVE, response.getStatus());
+        assertEquals(createdAt, response.getCreatedAt());
+
+        verify(repository).findById(id);
+        verify(repository).existsByEmailAndIdNot(request.getEmail(), id);
+        verify(repository).save(empresa);
+    }
+
+    @Test
+    void shouldThrowResourceNotFoundExceptionWhenUpdatingNonexistentEmpresa(){
+        Long id = 99L;
+
+        UpdateEmpresaRequest request = new UpdateEmpresaRequest();
+        request.setEmail("flux.gestao@gmail.com");
+        request.setName("Flux");
+
+        when(repository.findById(id))
+            .thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(
+            ResourceNotFoundException.class,
+            () -> service.update(id,request)
+        );
+
+        assertEquals(
+            "Recurso não encontrado. Id: " + id,
+            exception.getMessage()
+        );
+
+        verify(repository, never())
+            .existsByEmailAndIdNot(anyString(), anyLong());
+
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowBusinessExceptionWhenEmailBelongsToAnotherEmpresa(){
+        Long id = 1L;
+        Instant createdAt = Instant.now();
+
+        Empresa empresa = new Empresa(id
+            ,"Flux"
+            ,"flux@gmail.com"
+            ,EmpresaStatus.ACTIVE
+            ,createdAt);
+
+        UpdateEmpresaRequest request = new UpdateEmpresaRequest();
+        request.setEmail("flux.gestao@gmail.com");
+        request.setName("Flux.gestao");
+
+
+        when(repository.findById(id))
+            .thenReturn(Optional.of(empresa));
+
+        when(repository.existsByEmailAndIdNot(request.getEmail(), id))
+            .thenReturn(true);
+        BusinessException exception = assertThrows(
+            BusinessException.class,
+            () -> service.update(id, request)
+        );
+
+        assertEquals(
+            "Já existe uma empresa cadastrada com este e-mail.",
+            exception.getMessage()
+        );
+
+        verify(repository).findById(id);
+
+        verify(repository)
+            .existsByEmailAndIdNot(request.getEmail(), id);
+
+        verify(repository, never())
+            .save(any());
+    }
+
+    @Test
+    void shouldAllowUpdateWhenEmailBelongsToSameEmpresa() {
+        Long id = 1L;
+        Instant createdAt = Instant.now();
+
+        Empresa empresa = new Empresa(
+            id,
+            "Flux",
+            "flux@gmail.com",
+            EmpresaStatus.ACTIVE,
+            createdAt
+        );
+
+        UpdateEmpresaRequest request = new UpdateEmpresaRequest();
+        request.setName("Flux Gestão");
+        request.setEmail("flux@gmail.com");
+
+        when(repository.findById(id))
+            .thenReturn(Optional.of(empresa));
+
+        when(repository.existsByEmailAndIdNot(request.getEmail(), id))
+            .thenReturn(false);
+
+        when(repository.save(empresa))
+            .thenReturn(empresa);
+
+        EmpresaResponse response = service.update(id, request);
+
+        assertNotNull(response);
+        assertEquals(id, response.getId());
+        assertEquals("Flux Gestão", response.getName());
+        assertEquals("flux@gmail.com", response.getEmail());
+        assertEquals(EmpresaStatus.ACTIVE, response.getStatus());
+        assertEquals(createdAt, response.getCreatedAt());
+
+        verify(repository).findById(id);
+
+        verify(repository)
+            .existsByEmailAndIdNot(request.getEmail(), id);
+
+        verify(repository).save(empresa);
     }
 }

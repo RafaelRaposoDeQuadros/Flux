@@ -3,6 +3,7 @@ package com.flux.backend.empresa.service;
 
 import com.flux.backend.empresa.dto.CreateEmpresaRequest;
 import com.flux.backend.empresa.dto.EmpresaResponse;
+import com.flux.backend.empresa.dto.UpdateEmpresaRequest;
 import com.flux.backend.empresa.entity.Empresa;
 import com.flux.backend.empresa.enums.EmpresaStatus;
 import com.flux.backend.empresa.repository.EmpresaRepository;
@@ -46,5 +47,23 @@ public class EmpresaService {
         return empresas.stream()
             .map(EmpresaResponse::new)
             .toList();
+    }
+
+    public EmpresaResponse update(Long id, UpdateEmpresaRequest request){
+        Empresa empresa =   repository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException(id));
+
+        if (repository.existsByEmailAndIdNot(request.getEmail(),id)) {
+            throw new BusinessException(
+                "Já existe uma empresa cadastrada com este e-mail."
+            );
+        }
+
+        empresa.setName(request.getName());
+        empresa.setEmail(request.getEmail());
+
+        Empresa empresaAtualizada = repository.save(empresa);
+
+        return new EmpresaResponse(empresaAtualizada);
     }
 }
